@@ -9,7 +9,7 @@ version: '3.4'
 
 services:
   aklapi:
-    image: aklapi
+    image: histefanhere/aklapi
     restart: unless-stopped
     ports:
       - 8080:8080
