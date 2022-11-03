@@ -1,5 +1,36 @@
 # Auckland Council API (unofficial)
 
+## Docker image
+
+This fork of the orignial repository by [rusq](https://github.com/rusq/aklapi) provides all the files necessary to self-host the API in a docker container. It's as simple as creating the following `docker-compose.yml`:
+
+```yaml
+version: '3.4'
+
+services:
+  aklapi:
+    image: aklapi
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+```
+
+And running the command:
+
+```
+docker-compose up -d
+```
+
+Alternatively, you can just run the following command:
+
+```
+docker run -p 8080:8080 histefanhere/aklapi
+```
+
+Now just navigate to `http://<your server ip>:8080` and you should see the API up and running! 🎉 Refer to the next section for how to use the API and its features.
+
+## API specification
+
 Full list of available endpoints, for detailed description see below.
 
 | Name | Endpoint | Parameters | Comments |

@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  aklapi:
+    image: aklapi
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8080:8080
