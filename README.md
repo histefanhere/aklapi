@@ -11,6 +11,8 @@ services:
   aklapi:
     image: histefanhere/aklapi
     restart: unless-stopped
+    environment:
+     - NO_RUBBISH_CACHE= #optional
     ports:
       - 8080:8080
 ```

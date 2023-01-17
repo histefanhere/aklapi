@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -56,9 +57,11 @@ func (res *CollectionDayDetailResult) NextRecycle() time.Time {
 // CollectionDayDetail returns a collection day details for the specified
 // address as reported by the Auckland Council Website.
 func CollectionDayDetail(addr string) (*CollectionDayDetailResult, error) {
-	if cachedRes, ok := rubbishCache.Lookup(addr); ok {
-		log.Printf("cached rubbish result for %q", addr)
-		return cachedRes, nil
+	if _, noCache := os.LookupEnv("NO_RUBBISH_CACHE"); !noCache {
+		if cachedRes, ok := rubbishCache.Lookup(addr); ok {
+			log.Printf("cached rubbish result for %q", addr)
+			return cachedRes, nil
+		}
 	}
 	address, err := oneAddress(addr)
 	if err != nil {
