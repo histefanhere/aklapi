@@ -9,20 +9,20 @@ import (
 )
 
 const (
-	root              = "/"
-	apiRoot           = "/api/v1"
-	apiAddr           = apiRoot + "/addr/"
-	apiRubbishRecycle = apiRoot + "/rr/"
-	apiRRExt          = apiRoot + "/rrext/"
+	root           = "/"
+	apiRoot        = "/api/v2"
+	apiAddress     = apiRoot + "/address/"
+	apiDates       = apiRoot + "/dates/"
+	apiCollections = apiRoot + "/collections/"
 )
 
 var port = osenv.Value("PORT", "8080")
 
 func main() {
 	http.HandleFunc(root, aklapi.RootHandler)
-	http.HandleFunc(apiAddr, aklapi.AddrHandler)
-	http.HandleFunc(apiRubbishRecycle, aklapi.RrHandler)
-	http.HandleFunc(apiRRExt, aklapi.RrExtHandler)
+	http.HandleFunc(apiAddress, aklapi.AddressHandler)
+	http.HandleFunc(apiDates, aklapi.DatesHandler)
+	http.HandleFunc(apiCollections, aklapi.CollectionsHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

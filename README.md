@@ -35,57 +35,70 @@ Now just navigate to `http://<your server ip>:8080` and you should see the API u
 
 Full list of available endpoints, for detailed description see below.
 
-| Name                        | Endpoint        | Parameters              | Comments                            |
-|:----------------------------|:----------------|:------------------------|:------------------------------------|
-| Address                     | `/api/v1/addr`  | `addr`: partial address | Address Query                       |
-| Rubbish and Recycling short | `/api/v1/rr`    | `addr`: partial address | Rubbish and Recycling, short format |
-| Rubbish and Recycling       | `/api/v1/rrext` | `addr`: partial address | Rubbish and Recycling               |
+| Name                   | Endpoint              | Parameters              | Comments                                        |
+|:-----------------------|:----------------------|:------------------------|:------------------------------------------------|
+| Address search         | `/api/v2/address`     | `addr`: partial address | Lookup full address and address key             |
+| Waste collection dates | `/api/v2/dates`       | `addr`: partial address | Next dates for each waste type collection       |
+| All collections        | `/api/v2/collections` | `addr`: partial address | More detailed information about collection days |
 
 ### Address search
 
-* `/api/v1/addr`, parameter: `addr` - 
+* `/api/v2/address` endpoint for looking up the full address of a partial address. Also returns the address key used by Auckland Council. parameter: `addr` - a partial address. Returns JSON of the following format:
 
-### Rubbish and Recycling
+    [
+        {
+            "ACRateAccountKey": "12344314126",
+            "Address": "14 Glenfell Place, Epsom",
+            "Suggestion": "14 Glenfell Place, Epsom"
+        }
+    ]
 
-Two endpoints so far, both accepting `addr` parameter.
+### Collection Days
 
-* `/api/v1/rr/` - rubbish and recycling, returns the JSON of the following format:
+A collection day is any day when any waste type is collected from an address. Different waste types can be collected on different days. There are two endpoints for accessing information on collections days, both accepting the partial address `addr` parameter.
 
-      {
-          "rubbish": "2020-02-25",
-          "recycle": "2020-02-25",
-          "address": "Britomart, CBD"
-      }
+* `/api/v2/dates/` - Returns the date that each waste type will be collected of rubbish, recycling, and food scraps. returns JSON of the following format:
 
-* `/api/v1/rrext/` - extended rubbish and recycling.  Returns the JSON in the following format:
+    {
+        "rubbish": "2023-05-09",
+        "recycle": "2023-05-09",
+        "foodscraps": "0001-01-01",
+        "address": "14 Glenfell Place, Epsom"
+    }
 
-      {
-          "Collections": [
-              {
-                  "Day": "Monday 24 January",
-                  "Date": "2020-01-24T00:00:00+13:00",
-                  "Rubbish": true,
-                  "Recycle": true
-              },
-              {
-                  "Day": "Monday 31 January",
-                  "Date": "2020-01-31T00:00:00+13:00",
-                  "Rubbish": true,
-                  "Recycle": false
-              }
-          ],
-          "Address": {
-              "ACRateAccountKey": "12342478585",
-              "Address": "500 Queen Street, Auckland Central",
-              "Suggestion": "500 Queen Street, Auckland Central"
-          }
-      }
+* `/api/v2/collections/` - Provides more detailed information of the collection days and which waste types will be collected on which day. Also provides the address information from the `address` endpoint. Returns JSON in the following format:
+
+    {
+        "Collections": [
+            {
+                "Day": "Tuesday 9 May",
+                "Date": "2023-05-09T00:00:00+12:00",
+                "Rubbish": true,
+                "Recycle": true,
+                "FoodScraps": false
+            },
+            {
+                "Day": "Tuesday 16 May",
+                "Date": "2023-05-16T00:00:00+12:00",
+                "Rubbish": true,
+                "Recycle": false,
+                "FoodScraps": false
+            }
+        ],
+        "Address": {
+            "ACRateAccountKey": "12344314126",
+            "Address": "14 Glenfell Place, Epsom",
+            "Suggestion": "14 Glenfell Place, Epsom"
+        }
+    }
+
+## Usage
 
 Example:
 
 ```sh
-$ curl --location --request GET 'https://<server>/api/v1/rr/?addr=500%20Queen%20Street'
-{"rubbish":"2020-02-24","recycle":"2020-02-24","address":"500 Queen Street, Auckland Central"}
+$ curl --location --request GET 'https://<server>/api/v2/dates/?addr=14%20Glenfell%20Place'
+{"rubbish":"2023-05-09","recycle":"2023-05-09","foodscraps":"0001-01-01","address":"14 Glenfell Place, Epsom"}
 ```
 
 ### Integrating with Home Assistant
