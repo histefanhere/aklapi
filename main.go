@@ -1,29 +1,28 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
-	"github.com/rusq/osenv"
+	"github.com/rusq/aklapi/aklapi"
+	"github.com/rusq/osenv/v2"
 )
 
 const (
-	root              = "/"
-	apiRoot           = "/api/v1"
-	apiAddr           = apiRoot + "/addr/"
-	apiRubbishRecycle = apiRoot + "/rr/"
-	apiRRExt          = apiRoot + "/rrext/"
+	root           = "/"
+	apiRoot        = "/api/v2"
+	apiAddress     = apiRoot + "/address/"
+	apiDates       = apiRoot + "/dates/"
+	apiCollections = apiRoot + "/collections/"
 )
 
-var port = osenv.String("PORT", "8080")
-var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
+var port = osenv.Value("PORT", "8080")
 
 func main() {
-	http.HandleFunc(root, rootHandler)
-	http.HandleFunc(apiAddr, addrHandler)
-	http.HandleFunc(apiRubbishRecycle, rrHandler)
-	http.HandleFunc(apiRRExt, rrExtHandler)
+	http.HandleFunc(root, aklapi.RootHandler)
+	http.HandleFunc(apiAddress, aklapi.AddressHandler)
+	http.HandleFunc(apiDates, aklapi.DatesHandler)
+	http.HandleFunc(apiCollections, aklapi.CollectionsHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

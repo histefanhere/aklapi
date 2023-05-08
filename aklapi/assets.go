@@ -1,4 +1,4 @@
-package main
+package aklapi
 
 const rootHTML = `
 <!DOCTYPE html>

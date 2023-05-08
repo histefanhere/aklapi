@@ -21,10 +21,11 @@ var errSkip = errors.New("skip this date")
 
 // RubbishCollection contains the date and type of collection.
 type RubbishCollection struct {
-	Day     string
-	Date    time.Time
-	Rubbish bool
-	Recycle bool
+	Day        string
+	Date       time.Time
+	Rubbish    bool
+	Recycle    bool
+	FoodScraps bool
 }
 
 // CollectionDayDetailResult contains the information about Rubbish and
@@ -48,6 +49,15 @@ func (res *CollectionDayDetailResult) NextRubbish() time.Time {
 func (res *CollectionDayDetailResult) NextRecycle() time.Time {
 	for _, r := range res.Collections {
 		if r.Recycle {
+			return r.Date
+		}
+	}
+	return time.Time{}
+}
+
+func (res *CollectionDayDetailResult) NextFoodScraps() time.Time {
+	for _, r := range res.Collections {
+		if r.FoodScraps {
 			return r.Date
 		}
 	}
@@ -111,14 +121,12 @@ type refuseParser struct {
 // Parse parses the auckland council rubbish webpage.
 func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 	const datesSection = "#ctl00_SPWebPartManager1_g_dfe289d2_6a8a_414d_a384_fc25a0db9a6d_ctl00_pnlHouseholdBlock"
-	p.detail = make([]RubbishCollection, 2)
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return nil, err
 	}
 	_ = doc.Find(datesSection).
 		Children().
-		Slice(1, 3).
 		Each(p.parseLinks) // p.parseLinks populates p.detail
 	for i := range p.detail {
 		if err := (&p.detail[i]).parseDate(); err != nil {
@@ -137,28 +145,26 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 
 // parseLinks parses the links within selection
 func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
+	// Check if the first child of the selection is a span object
+	// if it isn't just skip over this entry
+	if !sel.Children().First().Is("span") {
+		return
+	}
+
+	// Add a new rubbish collection object to p.detail
+	p.detail = append(p.detail, RubbishCollection{})
+
 	sel.Children().Each(func(n int, sel *goquery.Selection) {
-		switch n {
-		default:
+		if dow.FindString(sel.Text()) != "" {
+			p.detail[len(p.detail)-1].Day = sel.Text()
+		} else if sel.Text() == "Rubbish" {
+			p.detail[len(p.detail)-1].Rubbish = true
+		} else if sel.Text() == "Recycle" {
+			p.detail[len(p.detail)-1].Recycle = true
+		} else if sel.Text() == "Food scraps" {
+			p.detail[len(p.detail)-1].FoodScraps = true
+		} else {
 			p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
-		case 0:
-			if dow.FindString(sel.Text()) == "" {
-				log.Println("unable to detect day of week")
-				return
-			}
-			p.detail[el].Day = sel.Text()
-		case 1:
-			if sel.Text() != "Rubbish" {
-				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
-				return
-			}
-			p.detail[el].Rubbish = true
-		case 2:
-			if sel.Text() != "Recycle" {
-				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
-				return
-			}
-			p.detail[el].Recycle = true
 		}
 	})
 }
