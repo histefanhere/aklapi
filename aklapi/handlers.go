@@ -1,15 +1,16 @@
-package main
+package aklapi
 
 import (
 	"encoding/json"
 	"errors"
+	"html/template"
 	"log"
 	"net/http"
-
-	"github.com/rusq/aklapi/aklapi"
 )
 
 const dateFmt = "2006-01-02"
+
+var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
 
 type rrResponse struct {
 	Rubbish string `json:"rubbish,omitempty"`
@@ -28,21 +29,21 @@ func respond(w http.ResponseWriter, data interface{}, code int) {
 	w.Write(b)
 }
 
-func rubbish(r *http.Request) (*aklapi.CollectionDayDetailResult, error) {
+func rubbish(r *http.Request) (*CollectionDayDetailResult, error) {
 	addr := r.FormValue("addr")
 	if addr == "" {
 		return nil, errors.New(http.StatusText(http.StatusBadRequest))
 	}
-	return aklapi.CollectionDayDetail(addr)
+	return CollectionDayDetail(addr)
 }
 
-func addrHandler(w http.ResponseWriter, r *http.Request) {
+func AddrHandler(w http.ResponseWriter, r *http.Request) {
 	addr := r.FormValue("addr")
 	if addr == "" {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	resp, err := aklapi.AddressLookup(addr)
+	resp, err := AddressLookup(addr)
 	if err != nil {
 		log.Println(err)
 		http.NotFound(w, r)
@@ -51,7 +52,7 @@ func addrHandler(w http.ResponseWriter, r *http.Request) {
 	respond(w, resp, http.StatusOK)
 }
 
-func rrHandler(w http.ResponseWriter, r *http.Request) {
+func RrHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := rubbish(r)
 	if err != nil {
 		respond(w, &rrResponse{Error: err.Error()}, http.StatusBadRequest)
@@ -65,7 +66,7 @@ func rrHandler(w http.ResponseWriter, r *http.Request) {
 	respond(w, resp, http.StatusOK)
 }
 
-func rrExtHandler(w http.ResponseWriter, r *http.Request) {
+func RrExtHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := rubbish(r)
 	if err != nil {
 		respond(w, rrResponse{Error: err.Error()}, http.StatusBadRequest)
@@ -74,7 +75,7 @@ func rrExtHandler(w http.ResponseWriter, r *http.Request) {
 	respond(w, res, http.StatusOK)
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
+func RootHandler(w http.ResponseWriter, r *http.Request) {
 	var page = struct {
 		CyberdyneLogo string
 	}{

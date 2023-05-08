@@ -1,11 +1,11 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
-	"github.com/rusq/osenv"
+	"github.com/rusq/aklapi/aklapi"
+	"github.com/rusq/osenv/v2"
 )
 
 const (
@@ -16,14 +16,13 @@ const (
 	apiRRExt          = apiRoot + "/rrext/"
 )
 
-var port = osenv.String("PORT", "8080")
-var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
+var port = osenv.Value("PORT", "8080")
 
 func main() {
-	http.HandleFunc(root, rootHandler)
-	http.HandleFunc(apiAddr, addrHandler)
-	http.HandleFunc(apiRubbishRecycle, rrHandler)
-	http.HandleFunc(apiRRExt, rrExtHandler)
+	http.HandleFunc(root, aklapi.RootHandler)
+	http.HandleFunc(apiAddr, aklapi.AddrHandler)
+	http.HandleFunc(apiRubbishRecycle, aklapi.RrHandler)
+	http.HandleFunc(apiRRExt, aklapi.RrExtHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
