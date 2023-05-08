@@ -21,10 +21,11 @@ var errSkip = errors.New("skip this date")
 
 // RubbishCollection contains the date and type of collection.
 type RubbishCollection struct {
-	Day     string
-	Date    time.Time
-	Rubbish bool
-	Recycle bool
+	Day        string
+	Date       time.Time
+	Rubbish    bool
+	Recycle    bool
+	FoodScraps bool
 }
 
 // CollectionDayDetailResult contains the information about Rubbish and
@@ -48,6 +49,15 @@ func (res *CollectionDayDetailResult) NextRubbish() time.Time {
 func (res *CollectionDayDetailResult) NextRecycle() time.Time {
 	for _, r := range res.Collections {
 		if r.Recycle {
+			return r.Date
+		}
+	}
+	return time.Time{}
+}
+
+func (res *CollectionDayDetailResult) NextFoodScraps() time.Time {
+	for _, r := range res.Collections {
+		if r.FoodScraps {
 			return r.Date
 		}
 	}
@@ -138,27 +148,16 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 // parseLinks parses the links within selection
 func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
 	sel.Children().Each(func(n int, sel *goquery.Selection) {
-		switch n {
-		default:
-			p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
-		case 0:
-			if dow.FindString(sel.Text()) == "" {
-				log.Println("unable to detect day of week")
-				return
-			}
+		if dow.FindString(sel.Text()) != "" {
 			p.detail[el].Day = sel.Text()
-		case 1:
-			if sel.Text() != "Rubbish" {
-				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
-				return
-			}
+		} else if sel.Text() == "Rubbish" {
 			p.detail[el].Rubbish = true
-		case 2:
-			if sel.Text() != "Recycle" {
-				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
-				return
-			}
+		} else if sel.Text() == "Recycle" {
 			p.detail[el].Recycle = true
+		} else if sel.Text() == "Food scraps" {
+			p.detail[el].FoodScraps = true
+		} else {
+			p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
 		}
 	})
 }
