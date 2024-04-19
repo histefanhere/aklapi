@@ -120,7 +120,7 @@ type refuseParser struct {
 
 // Parse parses the auckland council rubbish webpage.
 func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
-	const datesSection = "#ctl00_SPWebPartManager1_g_dfe289d2_6a8a_414d_a384_fc25a0db9a6d_ctl00_pnlHouseholdBlock"
+	const datesSection = "#ctl00_SPWebPartManager1_g_dfe289d2_6a8a_414d_a384_fc25a0db9a6d_ctl00_pnlHouseholdBlock2"
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return nil, err
@@ -144,10 +144,11 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 }
 
 // parseLinks parses the links within selection
-func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
-	// Check if the first child of the selection is a span object
-	// if it isn't just skip over this entry
-	if !sel.Children().First().Is("span") {
+func (p *refuseParser) parseLinks(el int, match *goquery.Selection) {
+	// Check if the match contains a collection date
+	// if it doesn't just skip over this entry
+	sel := match.Find(".collectionDayDate")
+	if sel.Length() == 0 {
 		return
 	}
 
