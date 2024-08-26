@@ -158,14 +158,20 @@ func (p *refuseParser) parseLinks(el int, match *goquery.Selection) {
 	sel.Children().Each(func(n int, sel *goquery.Selection) {
 		if dow.FindString(sel.Text()) != "" {
 			p.detail[len(p.detail)-1].Day = sel.Text()
-		} else if sel.Text() == "Rubbish" {
-			p.detail[len(p.detail)-1].Rubbish = true
-		} else if sel.Text() == "Recycle" {
-			p.detail[len(p.detail)-1].Recycle = true
-		} else if sel.Text() == "Food scraps" {
-			p.detail[len(p.detail)-1].FoodScraps = true
 		} else {
-			p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
+			icon, found := sel.Attr("class")
+			if !found {
+				return
+			}
+			if icon == "icon-rubbish" {
+				p.detail[len(p.detail)-1].Rubbish = true
+			} else if icon == "icon-food-waste" {
+				p.detail[len(p.detail)-1].FoodScraps = true
+			} else if icon == "icon-recycle" {
+				p.detail[len(p.detail)-1].Recycle = true
+			} else {
+				p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
+			}
 		}
 	})
 }
